@@ -22,7 +22,7 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
-func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
@@ -39,7 +39,8 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data any, h
 	return nil
 }
 
-func (app *application) internalServerError(w http.ResponseWriter, err error) {
-	app.logger.Error(err.Error())
-	http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
+type envelope map[string]any
+
+func ToEnvelope(obj any, name string) envelope {
+	return envelope{name: obj}
 }
