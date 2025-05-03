@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+
+	"maps"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -17,4 +20,26 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
+	js, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	js = append(js, '\n')
+
+	maps.Copy(w.Header(), headers)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(js)
+
+	return nil
+}
+
+func (app *application) internalServerError(w http.ResponseWriter, err error) {
+	app.logger.Error(err.Error())
+	http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
 }
